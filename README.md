@@ -1,5 +1,13 @@
 # 🚀 Frappe-Wix Integration: Complete Setup Guide
 
+## 🔧 **FIXED: Proper Frappe App Structure**
+
+✅ **Issue Resolved**: Fixed file structure to comply with Frappe standards
+- Moved `hooks.py` to correct location: `wix_integration/wix_integration/hooks.py`
+- Added `patches.txt` in the inner directory
+- Added `modules.txt` in the correct location
+- Added proper `config/` directory structure
+
 ## 📋 Quick Start
 
 This repository contains a complete Frappe custom app that automatically syncs Items from Frappe to Products in Wix. 
@@ -61,6 +69,30 @@ Create a new Item:
 4. Check for success message: "Item synced to Wix"
 5. Check the **Wix Product ID** field is populated
 
+## 📁 Correct File Structure
+
+```
+wix_integration/
+├── __init__.py                           # App version
+├── install.py                           # Installation script
+├── wix_integration/
+│   ├── __init__.py                      # Package init
+│   ├── hooks.py                         # ✅ FRAPPE HOOKS (CORRECT LOCATION)
+│   ├── patches.txt                      # ✅ PATCHES FILE (CORRECT LOCATION)  
+│   ├── modules.txt                      # ✅ MODULES LIST (CORRECT LOCATION)
+│   ├── config/
+│   │   ├── __init__.py
+│   │   └── desktop.py                   # Desktop module configuration
+│   └── utils/
+│       ├── __init__.py
+│       ├── wix_api.py                   # Wix API integration
+│       ├── wix_mcp_integration.py       # MCP integration
+│       └── item_hooks.py                # Document event handlers
+├── setup.py                             # Python package setup
+├── requirements.txt                     # Dependencies
+└── README.md                            # This file
+```
+
 ## 🔧 Field Mapping
 
 | Frappe Item | Wix Product | Notes |
@@ -93,25 +125,23 @@ Show Success/Error Message
 
 ### Common Issues
 
-#### 1. "Wix authentication token not configured"
+#### 1. "Not a valid Frappe App" Error
+**✅ FIXED**: The file structure has been corrected. All required files are now in the proper locations.
+
+#### 2. "Wix authentication token not configured"
 **Solution**: Set `wix_auth_token` in Site Config
 
-#### 2. "Failed to sync item to Wix"
+#### 3. "Failed to sync item to Wix"
 **Solutions**:
 - Check Error Log for detailed messages
 - Verify Wix token is valid and has required permissions
 - Ensure item is a stock item (not service)
 
-#### 3. "Products not syncing"
+#### 4. "Products not syncing"
 **Check**:
 - `enable_wix_integration` is set to `1`
 - Item is not a variant or template
 - Item has `is_stock_item` checked
-
-#### 4. "Catalog version error"
-The app auto-detects catalog version. If you get version errors:
-- Check your Wix site's catalog version
-- Update the API endpoints in the integration
 
 ### 🔧 Debug Mode
 
@@ -120,48 +150,47 @@ Enable detailed logging:
 2. Look for entries with title "Wix Integration"
 3. Check server console for real-time logs
 
-## 📝 Customization
+## 📝 Installation Steps (Detailed)
 
-### Modify Field Mapping
+1. **Navigate to bench directory**:
+   ```bash
+   cd /home/frappe/frappe-bench  # or your bench path
+   ```
 
-Edit `wix_integration/wix_integration/utils/wix_api.py`:
+2. **Clone the repository**:
+   ```bash
+   git clone https://github.com/macrobian88/frappe-wix-integration.git apps/wix_integration
+   ```
 
-```python
-def format_product_data(item_doc):
-    # Add your custom field mappings here
-    product_data = {
-        "product": {
-            "name": item_doc.your_custom_field,  # Custom mapping
-            # ... rest of the mapping
-        }
-    }
-    return product_data
-```
+3. **Install on your site**:
+   ```bash
+   bench --site mysite.local install-app wix_integration
+   ```
 
-### Add Custom Logic
+4. **Restart services**:
+   ```bash
+   bench restart
+   ```
 
-Edit `wix_integration/wix_integration/utils/item_hooks.py`:
+5. **Check installation**:
+   ```bash
+   bench --site mysite.local list-apps
+   ```
+   You should see `wix_integration` in the list.
 
-```python
-def create_wix_product(doc, method):
-    # Add custom conditions
-    if doc.custom_field == "special_value":
-        # Custom logic here
-        pass
-    
-    # ... rest of the hook
-```
+## 🎁 Features Included
 
-## 🔐 Security Best Practices
-
-1. **Never commit tokens**: Use Site Config, not code
-2. **Use HTTPS**: All API calls are encrypted
-3. **Validate input**: Data is sanitized before API calls
-4. **Error handling**: Sensitive data not exposed in logs
+- **✅ Automatic Product Creation**: Items → Wix Products  
+- **✅ Real-time Updates**: Item changes sync to Wix  
+- **✅ Comprehensive Field Mapping**: Name, Price, SKU, Description, etc.  
+- **✅ Error Handling & Logging**: Full debugging support  
+- **✅ Custom Field Integration**: Stores Wix Product ID  
+- **✅ Configurable Settings**: Enable/disable via Site Config  
+- **✅ Installation Automation**: Auto-setup on install  
 
 ## 📈 Advanced Features
 
-### Batch Sync
+### Bulk Sync
 ```python
 # Custom script to sync all items
 from wix_integration.wix_integration.utils.item_hooks import create_wix_product
@@ -172,15 +201,12 @@ for item_name in items:
     create_wix_product(item, "manual")
 ```
 
-### Webhook Integration
-Add webhook endpoints to sync back from Wix:
+## 🔐 Security Best Practices
 
-```python
-@frappe.whitelist(allow_guest=True)
-def wix_webhook(data):
-    # Handle Wix -> Frappe sync
-    pass
-```
+1. **Never commit tokens**: Use Site Config, not code
+2. **Use HTTPS**: All API calls are encrypted
+3. **Validate input**: Data is sanitized before API calls
+4. **Error handling**: Sensitive data not exposed in logs
 
 ## 📞 Support
 
@@ -204,12 +230,11 @@ MIT License - Feel free to use and modify!
 
 ## 🎉 Success!
 
-If you've followed this guide, you should now have:
+The app structure has been **corrected** and should now install properly as a valid Frappe app!
 
-✅ **Automatic product creation** in Wix when Items are created in Frappe  
-✅ **Field mapping** between Frappe and Wix  
-✅ **Error handling** and logging  
-✅ **Configurable integration** you can enable/disable  
+✅ **All required files are in correct locations**  
+✅ **Proper Frappe app structure**  
+✅ **Ready for installation**  
 
 **Happy syncing!** 🚀
 
