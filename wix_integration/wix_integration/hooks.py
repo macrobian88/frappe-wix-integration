@@ -10,8 +10,8 @@ app_license = "MIT"
 # Document Events
 doc_events = {
     "Item": {
-        "after_insert": "wix_integration.wix_integration.utils.item_hooks.create_wix_product",
-        "on_update": "wix_integration.wix_integration.utils.item_hooks.update_wix_product"
+        "after_insert": "wix_integration.wix_integration.utils.wix_api.create_wix_product",
+        "on_update": "wix_integration.wix_integration.utils.wix_api.update_wix_product"
     }
 }
 
