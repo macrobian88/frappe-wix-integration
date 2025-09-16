@@ -1,0 +1,39 @@
+# This file has been moved to wix_integration/wix_integration/hooks.py
+# This backup can be deleted once the app structure is confirmed working
+
+from . import __version__ as app_version
+
+app_name = "wix_integration"
+app_title = "Wix Integration"
+app_publisher = "Your Company"
+app_description = "Integration between Frappe and Wix for automatic product sync"
+app_icon = "octicon octicon-file-directory"
+app_color = "grey"
+app_email = "your-email@example.com"
+app_license = "MIT"
+
+# Document Events
+doc_events = {
+    "Item": {
+        "after_insert": "wix_integration.wix_integration.utils.wix_api.create_wix_product"
+    }
+}
+
+# Scheduled Tasks
+scheduler_events = {
+    # "all": [
+    # 	"wix_integration.tasks.all"
+    # ],
+    # "daily": [
+    # 	"wix_integration.tasks.daily"
+    # ],
+    # "hourly": [
+    # 	"wix_integration.tasks.hourly"
+    # ],
+    # "weekly": [
+    # 	"wix_integration.tasks.weekly"
+    # ],
+    # "monthly": [
+    # 	"wix_integration.tasks.monthly"
+    # ],
+}
