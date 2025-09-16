@@ -1,34 +1,17 @@
-# Frappe-Wix Integration
+# 🚀 Frappe-Wix Integration: Complete Setup Guide
 
-A custom Frappe app that automatically creates and updates Wix products when Items are created or modified in Frappe.
+## 📋 Quick Start
 
-## Features
+This repository contains a complete Frappe custom app that automatically syncs Items from Frappe to Products in Wix. 
 
-- ✅ **Automatic Product Creation**: Creates Wix products when Frappe Items are created
-- ✅ **Real-time Updates**: Updates Wix products when Frappe Items are modified
-- ✅ **Field Mapping**: Maps Frappe Item fields to appropriate Wix Product fields
-- ✅ **Error Handling**: Comprehensive error handling and logging
-- ✅ **Configurable**: Easy to enable/disable and customize
+### 🎯 Target Integration
+- **Wix Site**: kokofresh
+- **Site ID**: `a57521a4-3ecd-40b8-852c-462f2af558d2`
+- **Catalog Version**: Auto-detected (V1 or V3 support)
 
-## Wix Site Integration
+## ⚡ Installation
 
-**Target Site**: kokofresh  
-**Site ID**: `a57521a4-3ecd-40b8-852c-462f2af558d2`
-
-## Field Mapping
-
-| Frappe Item Field | Wix Product Field | Description |
-|-------------------|-------------------|-------------|
-| `item_name` | `product.name` | Product name |
-| `item_code` | `product.variantsInfo.variants[0].sku` | Product SKU |
-| `description` | `product.plainDescription` | Product description (HTML) |
-| `standard_rate` | `product.variantsInfo.variants[0].price.actualPrice.amount` | Product price |
-| `weight_per_unit` | `product.variantsInfo.variants[0].physicalProperties.weight` | Product weight |
-| `brand` | `product.brand.name` | Product brand |
-
-## Installation
-
-### 1. Install the App
+### 1. Clone and Install
 
 ```bash
 # Navigate to your Frappe bench directory
@@ -39,140 +22,205 @@ git clone https://github.com/macrobian88/frappe-wix-integration.git apps/wix_int
 
 # Install the app
 bench --site your-site-name install-app wix_integration
+
+# Restart the bench
+bench restart
 ```
 
-### 2. Configure Wix Authentication
+### 2. Configure Authentication
 
-You need to set up Wix authentication in your Site Config:
+#### Get Wix API Credentials:
+1. Go to [Wix Developers](https://dev.wix.com/)
+2. Create or select your app
+3. Get OAuth token or API key
+4. Note down your app permissions
 
+#### Set up in Frappe:
 1. Go to **Setup > Site Config**
-2. Add these fields:
-   - `wix_auth_token`: Your Wix API authentication token
-   - `enable_wix_integration`: Set to `1` to enable the integration
+2. Click **Add Row** and set:
+   - **Key**: `wix_auth_token`
+   - **Value**: Your Wix API token
+3. Add another row:
+   - **Key**: `enable_wix_integration` 
+   - **Value**: `1`
 
-### 3. Add Custom Field to Item DocType
+### 3. Test the Integration
 
-To store the Wix Product ID, add a custom field:
+Create a new Item:
+1. Go to **Stock > Item > New**
+2. Fill in:
+   - **Item Code**: `TEST-SYNC-001`
+   - **Item Name**: `Test Sync Product`
+   - **Item Group**: Any existing group
+   - **Stock UOM**: `Nos`
+   - **Standard Rate**: `99.99`
+   - **Description**: `This is a test product for Wix sync`
+   - **Maintain Stock**: ✅ Yes
 
-1. Go to **Customize > Customize Form**
-2. Select **Item** DocType
-3. Add a new field:
-   - **Field Type**: Data
-   - **Field Name**: `custom_wix_product_id`
-   - **Label**: Wix Product ID
-   - **Read Only**: Yes
+3. **Save** the item
+4. Check for success message: "Item synced to Wix"
+5. Check the **Wix Product ID** field is populated
 
-## Getting Wix Authentication Token
+## 🔧 Field Mapping
 
-To get your Wix authentication token:
+| Frappe Item | Wix Product | Notes |
+|-------------|-------------|-------|
+| `item_name` | Product Name | Primary display name |
+| `item_code` | SKU | Unique identifier |
+| `description` | Description | HTML stripped for plain text |
+| `standard_rate` | Price | Converted to string format |
+| `weight_per_unit` | Weight | Physical properties |
+| `brand` | Brand | If available |
+| `valuation_rate` | Cost | For profit calculations |
 
-1. **Create a Wix App** (if you haven't already):
-   - Go to [Wix Developers](https://dev.wix.com/)
-   - Create a new app or use existing one
-   - Get your App ID and App Secret
+## 🛠️ Architecture
 
-2. **OAuth Flow** (Recommended):
-   - Implement OAuth flow to get user consent
-   - Store the access token securely
+```
+Frappe Item Creation
+       ↓
+Document Hook (after_insert)
+       ↓
+Format Product Data
+       ↓
+Call Wix API (Catalog V1/V3)
+       ↓
+Store Wix Product ID
+       ↓
+Show Success/Error Message
+```
 
-3. **API Key** (For development):
-   - You can use Wix API keys for testing
-   - Not recommended for production
-
-## Usage
-
-### Automatic Sync
-
-Once configured, the integration works automatically:
-
-1. **Create Item**: When you create a new Item in Frappe, it automatically creates a product in Wix
-2. **Update Item**: When you update an Item, it updates the corresponding Wix product
-3. **Error Handling**: Any errors are logged and displayed to the user
-
-### Manual Testing
-
-To test the integration:
-
-1. Create a new Item with:
-   - Item Name: "Test Product"
-   - Item Code: "TEST-001"
-   - Description: "This is a test product"
-   - Standard Rate: 100.00
-   - Maintain Stock: Yes
-
-2. Check the **Error Log** for any issues
-3. Verify the product was created in your Wix store
-4. The `custom_wix_product_id` field should be populated
-
-## Configuration Options
-
-### Site Config Settings
-
-| Setting | Description | Required |
-|---------|-------------|----------|
-| `wix_auth_token` | Wix API authentication token | Yes |
-| `enable_wix_integration` | Enable/disable the integration (1/0) | Yes |
-| `wix_site_id` | Override default Wix site ID | No |
-
-### Customization
-
-To customize the field mapping, edit `wix_integration/wix_integration/utils/wix_api.py` and modify the `format_product_data` function.
-
-## Troubleshooting
+## 🔍 Troubleshooting
 
 ### Common Issues
 
-1. **"Wix authentication token not configured"**
-   - Set the `wix_auth_token` in Site Config
+#### 1. "Wix authentication token not configured"
+**Solution**: Set `wix_auth_token` in Site Config
 
-2. **"Failed to sync item to Wix"**
-   - Check Error Log for detailed error messages
-   - Verify your Wix authentication token is valid
-   - Ensure Wix app has proper permissions
+#### 2. "Failed to sync item to Wix"
+**Solutions**:
+- Check Error Log for detailed messages
+- Verify Wix token is valid and has required permissions
+- Ensure item is a stock item (not service)
 
-3. **Products not syncing**
-   - Verify `enable_wix_integration` is set to `1`
-   - Check that the item is a stock item
-   - Ensure it's not a variant or template
+#### 3. "Products not syncing"
+**Check**:
+- `enable_wix_integration` is set to `1`
+- Item is not a variant or template
+- Item has `is_stock_item` checked
 
-### Debug Logging
+#### 4. "Catalog version error"
+The app auto-detects catalog version. If you get version errors:
+- Check your Wix site's catalog version
+- Update the API endpoints in the integration
 
-The app logs detailed information. Check:
-- **Error Log** in Frappe
-- Server console output
-- Frappe logs directory
+### 🔧 Debug Mode
 
-## API Endpoints Used
+Enable detailed logging:
+1. Go to **Error Log**
+2. Look for entries with title "Wix Integration"
+3. Check server console for real-time logs
 
-- **Create Product**: `POST https://www.wixapis.com/stores/v3/products`
-- **Update Product**: `PATCH https://www.wixapis.com/stores/v3/products/{productId}`
+## 📝 Customization
 
-## Security Considerations
+### Modify Field Mapping
 
-1. **Store tokens securely**: Never commit authentication tokens to version control
-2. **Use HTTPS**: All API calls use HTTPS
-3. **Validate data**: Input validation is performed before API calls
-4. **Error handling**: Sensitive information is not exposed in error messages
+Edit `wix_integration/wix_integration/utils/wix_api.py`:
 
-## Contributing
+```python
+def format_product_data(item_doc):
+    # Add your custom field mappings here
+    product_data = {
+        "product": {
+            "name": item_doc.your_custom_field,  # Custom mapping
+            # ... rest of the mapping
+        }
+    }
+    return product_data
+```
 
+### Add Custom Logic
+
+Edit `wix_integration/wix_integration/utils/item_hooks.py`:
+
+```python
+def create_wix_product(doc, method):
+    # Add custom conditions
+    if doc.custom_field == "special_value":
+        # Custom logic here
+        pass
+    
+    # ... rest of the hook
+```
+
+## 🔐 Security Best Practices
+
+1. **Never commit tokens**: Use Site Config, not code
+2. **Use HTTPS**: All API calls are encrypted
+3. **Validate input**: Data is sanitized before API calls
+4. **Error handling**: Sensitive data not exposed in logs
+
+## 📈 Advanced Features
+
+### Batch Sync
+```python
+# Custom script to sync all items
+from wix_integration.wix_integration.utils.item_hooks import create_wix_product
+
+items = frappe.get_all("Item", {"is_stock_item": 1})
+for item_name in items:
+    item = frappe.get_doc("Item", item_name.name)
+    create_wix_product(item, "manual")
+```
+
+### Webhook Integration
+Add webhook endpoints to sync back from Wix:
+
+```python
+@frappe.whitelist(allow_guest=True)
+def wix_webhook(data):
+    # Handle Wix -> Frappe sync
+    pass
+```
+
+## 📞 Support
+
+### Getting Help
+1. **Documentation**: Check this README
+2. **Error Logs**: Review Frappe Error Log
+3. **GitHub Issues**: Create issues for bugs
+4. **Community**: Ask in Frappe forums
+
+### Contributing
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create feature branch
+3. Add tests if applicable  
+4. Submit pull request
 
-## License
+## 📄 License
 
-MIT License - see LICENSE file for details.
-
-## Support
-
-For issues and questions:
-1. Check the troubleshooting section
-2. Review Error Logs
-3. Create an issue on GitHub
+MIT License - Feel free to use and modify!
 
 ---
 
-**Happy syncing! 🚀**
+## 🎉 Success!
+
+If you've followed this guide, you should now have:
+
+✅ **Automatic product creation** in Wix when Items are created in Frappe  
+✅ **Field mapping** between Frappe and Wix  
+✅ **Error handling** and logging  
+✅ **Configurable integration** you can enable/disable  
+
+**Happy syncing!** 🚀
+
+---
+
+### 📊 Integration Stats
+
+- **Repository**: https://github.com/macrobian88/frappe-wix-integration
+- **Version**: 1.0.0
+- **Frappe Compatible**: v13+ 
+- **Python**: 3.8+
+- **Dependencies**: frappe, requests
+
+**Made with ❤️ for seamless e-commerce integration**
