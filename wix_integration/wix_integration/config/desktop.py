@@ -4,10 +4,9 @@ def get_data():
     return [
         {
             "module_name": "Wix Integration",
-            "_doctype": "",
             "color": "grey",
-            "icon": "octicon octicon-cloud-upload",
+            "icon": "octicon octicon-file-directory",
             "type": "module",
-            "description": "Integrate Frappe Items with Wix Products"
+            "label": _("Wix Integration")
         }
     ]
